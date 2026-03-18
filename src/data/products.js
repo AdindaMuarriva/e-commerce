@@ -289,14 +289,14 @@ const products = [
   },
   {
     id: 17,
-    name: "Somethinc Retinol Serum",
+    name: "Skintific Retinol Serum",
     price: 120000,
     description: "Serum anti-aging dengan retinol untuk mengurangi tanda-tanda penuaan",
     category: "Skincare",
-    brand: "Somethinc",
+    brand: "Skintific",
     stock: 200,
     rating: 4.6,
-    image: "/images/somethinc-retinol.jpg",
+    image: "/images/skintific-retinol.jpg",
     specs: {
       volume: "20ml",
       concentration: "2.5% Retinol",
