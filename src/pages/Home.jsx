@@ -1,55 +1,78 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import products from "../data/products";
-import SearchBar from "../components/SearchBar";
+import { useState, useEffect } from 'react';
+import { getProducts, getCategories } from '../services/api';
+import ProductCard from '../components/ProductCard';
+import Loading from '../components/Loading';
+import SearchBar from '../components/SearchBar';
 
-const Home = () => {
-  const [filtered, setFiltered] = useState(products);
+export default function Home() {
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState('');
 
-  const handleSearch = (keyword) => {
-    const result = products.filter((item) =>
-      item.name.toLowerCase().includes(keyword.toLowerCase())
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+
+        const [productsData, categoriesData] = await Promise.all([
+          getProducts(),
+          getCategories(),
+        ]);
+
+        setProducts(productsData);
+        setCategories(categoriesData);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+    const filteredProducts = products
+    .filter((p) =>
+        selectedCategory === 'all' ? true : p.category === selectedCategory
+    )
+    .filter((p) =>
+        p.title.toLowerCase().includes(search.toLowerCase())
     );
-    setFiltered(result);
-  };
+
+  if (loading) return <Loading />;
+  if (error) return <p>Error: {error}</p>;
 
   return (
-    <div className="bg-gray-100 min-h-screen p-6">
-      <h1 className="text-3xl font-bold mb-4">🛍️ E-Commerce</h1>
+    <div style={{ padding: '2rem' }}>
+      <h2>Katalog Produk</h2>
+      <SearchBar search={search} setSearch={setSearch} />
 
-      <SearchBar onSearch={handleSearch} />
+      <div style={{ marginBottom: '1rem' }}>
+        <button onClick={() => setSelectedCategory('all')}>
+          Semua
+        </button>
 
-      <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
-        {filtered.map((item) => (
-          <div
-            key={item.id}
-            className="bg-white rounded-2xl shadow-md hover:shadow-xl transition p-4"
-          >
-            <img
-              src={item.image}
-              className="h-40 w-full object-cover rounded-xl"
-            />
+        {categories.map((cat) => (
+          <button key={cat} onClick={() => setSelectedCategory(cat)}>
+            {cat}
+          </button>
+        ))}
+      </div>
 
-            <p className="text-xs text-green-500">Stock: {item.stock}</p>
-            <h3 className="mt-3 font-semibold text-lg">{item.name}</h3>
-            <p className="text-xs text-gray-400">{item.brand}</p>
-            
-            <p className="text-blue-600 font-bold">
-              Rp {item.price.toLocaleString()}
-            </p>
-
-            <p className="text-yellow-500 text-sm">⭐ {item.rating}</p>
-
-            <Link to={`/product/${item.id}`}>
-              <button className="mt-3 w-full bg-blue-500 text-white py-2 rounded-xl hover:bg-blue-600">
-                Lihat Detail
-              </button>
-            </Link>
-          </div>
+      <div style={gridStyle}>
+        {filteredProducts.map((product) => (
+          <ProductCard key={product.id} product={product} />
         ))}
       </div>
     </div>
   );
-};
+}
 
-export default Home;
+const gridStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+  gap: '1.5rem',
+};

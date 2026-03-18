@@ -1,102 +1,71 @@
-import { useState } from "react";
+import { useCart } from '../context/CartContext';
 
-const Cart = () => {
-  const [cart, setCart] = useState([
-    {
-      id: 1,
-      name: "MacBook Pro M3",
-      price: 25000000,
-      quantity: 1,
-      image: "/images/macbook-pro-m3.jpg"
-    }
-  ]);
+export default function Cart() {
+  const { items, totalPrice, removeItem, clearCart, increaseQty, decreaseQty } = useCart();
 
-  const increaseQty = (id) => {
-    setCart(cart.map(item =>
-      item.id === id
-        ? { ...item, quantity: item.quantity + 1 }
-        : item
-    ));
-  };
-
-  const decreaseQty = (id) => {
-    setCart(cart.map(item =>
-      item.id === id && item.quantity > 1
-        ? { ...item, quantity: item.quantity - 1 }
-        : item
-    ));
-  };
-
-  const total = cart.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0
-  );
+  if (items.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '3rem' }}>
+        <h2>Keranjang Kosong</h2>
+        <p>Belum ada produk di keranjang.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-gray-100 min-h-screen p-6">
-      <h1 className="text-2xl font-bold mb-4">🛒 Cart</h1>
+    <div style={container}>
+      <h2>Keranjang Belanja</h2>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        
-        {/* LIST */}
-        <div className="md:col-span-2 space-y-4">
-          {cart.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white p-4 rounded-xl shadow flex items-center gap-4"
-            >
-              <img
-                src={item.image}
-                className="w-24 h-24 object-cover rounded"
-              />
+      {items.map((item) => (
+        <div key={item.id} style={itemStyle}>
+          <img src={item.image} alt={item.title} style={imgStyle} />
 
-              <div className="flex-1">
-                <h3 className="font-semibold">{item.name}</h3>
-                <p className="text-blue-600">
-                  Rp {item.price.toLocaleString()}
-                </p>
-              </div>
+          <div style={{ flex: 1 }}>
+            <h4>{item.title}</h4>
+            <p>
+              ${item.price.toFixed(2)} x {item.quantity}
+            </p>
+          </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => decreaseQty(item.id)}
-                  className="bg-gray-200 px-3 py-1 rounded"
-                >
-                  -
-                </button>
+          <p>
+            ${(item.price * item.quantity).toFixed(2)}
+          </p>
 
-                <span>{item.quantity}</span>
-
-                <button
-                  onClick={() => increaseQty(item.id)}
-                  className="bg-blue-500 text-white px-3 py-1 rounded"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-          ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <button onClick={() => decreaseQty(item.id)}>-</button>
+        <span>{item.quantity}</span>
+        <button onClick={() => increaseQty(item.id)}>+</button>
         </div>
-
-        {/* SUMMARY */}
-        <div className="bg-white p-6 rounded-xl shadow h-fit">
-          <h2 className="font-bold text-lg mb-3">Ringkasan</h2>
-
-          <p className="mb-2">
-            Total:
-          </p>
-
-          <p className="text-xl font-bold text-blue-600">
-            Rp {total.toLocaleString()}
-          </p>
-
-          <button className="mt-4 w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600">
-            Checkout
+        
+          <button onClick={() => removeItem(item.id)}>
+            Hapus
           </button>
         </div>
+      ))}
+
+      <div style={{ textAlign: 'right' }}>
+        <h3>Total: ${totalPrice.toFixed(2)}</h3>
+        <button onClick={clearCart}>Checkout</button>
       </div>
     </div>
   );
+}
+
+const container = {
+  padding: '2rem',
+  maxWidth: '800px',
+  margin: '0 auto',
 };
 
-export default Cart;
+const itemStyle = {
+  display: 'flex',
+  gap: '1rem',
+  padding: '1rem',
+  borderBottom: '1px solid #eee',
+};
+
+const imgStyle = {
+  width: '60px',
+  height: '60px',
+  objectFit: 'contain',
+};
